@@ -1,10 +1,10 @@
 !define PRODUCT_NAME "Time Clocker"
-!define PRODUCT_VERSION "1.0"
+!define PRODUCT_VERSION "1.1"
 !define PY_VERSION "3.6.1"
 !define PY_MAJOR_VERSION "3.6"
 !define BITNESS "64"
 !define ARCH_TAG ".amd64"
-!define INSTALLER_NAME "Time_Clocker_1.0.exe"
+!define INSTALLER_NAME "Time_Clocker_1.1.exe"
 !define PRODUCT_ICON "glossyorb.ico"
  
 SetCompressor lzma
@@ -48,7 +48,7 @@ Section "!${PRODUCT_NAME}" sec_app
       File "Time_Clocker.launch.py"
       File "glossyorb.ico"
       File "chromedriver.exe"
-      File "readme.html"
+      File "form.html"
   
   ; Install directories
     SetOutPath "$INSTDIR\Python"
@@ -151,7 +151,7 @@ Section "Uninstall"
     Delete "$INSTDIR\Time_Clocker.launch.py"
     Delete "$INSTDIR\glossyorb.ico"
     Delete "$INSTDIR\chromedriver.exe"
-    Delete "$INSTDIR\readme.html"
+    Delete "$INSTDIR\form.html"
   ; Uninstall directories
     RMDir /r "$INSTDIR\Python"
 

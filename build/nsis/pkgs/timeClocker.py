@@ -1,30 +1,52 @@
-#Clocks time in ExponentHR
+#timeClocker 1.1 - Forms
 
 import re
-import getpass
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.options import Options
+import time
+from urllib.parse import urlparse, parse_qs
 
-#points to driver
-browser = webdriver.Chrome('C:\Program Files\Time Clocker\chromedriver.exe')
+#points to driver, disables password manager, moves to right side of screen
+chrome_options = Options()
+chrome_options.add_experimental_option('prefs', {
+    'credentials_enable_service': False,
+    'profile': {
+        'password_manager_enabled': False
+    }
+})
+chrome_options.add_argument("window-position=1000,0")
+chrome_options.add_argument("window-size=900,900")
+browser = webdriver.Chrome('C:\Program Files\Time Clocker\chromedriver.exe',chrome_options=chrome_options)
 
 def getCreds():
-    #Ask for username & pw
-    print("ExponentHR Username:")
-    username = input()
-    password = getpass.getpass(prompt='ExponentHR Password: (This is a secure input, no characters will appear)\n', stream = None)
-    #ensure they're not blank
-    if '' in (username,password):
-        print("Please fill in all fields.")
-        getCreds()
-    #assign to tuple
-    credsTup = (username,password)
-    return(credsTup)
+    #open the credentials form
+    browser.get('C:\\Program Files\\Time Clocker\\form.html')
+
+    #get the current URL and wait until it has a "?" in it, which indicates the user has pressed submit
+    currentUrl = str(browser.current_url)
+    while "?" not in currentUrl:
+        time.sleep(1)
+        currentUrl = str(browser.current_url)
+
+    #once the user has clicked submit, parse the URL and grab the get values
+    parsedUrl = urlparse(currentUrl)
+    userDataDict = parse_qs(parsedUrl.query)
+
+    #strip the unnecessary characters from the dict values, make it a list, then a tuple
+    credsList = []
+    for value in userDataDict.values():
+        regex = re.compile('[^a-zA-Z0-9: ]')
+        value = regex.sub('', str(value))
+        credsList.append(value)
+
+    #make it a tuple
+    dataTup = tuple(credsList)
+    return dataTup
 
 def login(credsTup):
-    #Navigates to login page
+    #navigates to login page
     browser.get('https://www.exponenthr.com/service/EmpLogon.asp')
-    
     #identify login fields and fill with creds
     emailElem = browser.find_element_by_id('USERID')
     emailElem.send_keys(credsTup[0])
@@ -45,46 +67,16 @@ def login(credsTup):
         login(getCreds())
         return
 
-def getSecAns():
-    #Print security Question and ask for security answer
-    #check we're on the secondary auth page and get the question
-    pageTitle = str(browser.title)
-    if pageTitle == 'Secondary Authentication Required':
-        secQuestionElem = browser.find_element_by_id('Hidden2')
-        secQuestion = secQuestionElem.get_attribute("value")
-    else:
-        return
-    print("Security Question:")
-    print(secQuestion)
-    secAnswer = getpass.getpass(prompt='Security Answer:  (This is a secure input, no characters will appear)\n', stream = None)
-    #ensure it's not blank
-    if secAnswer == '':
-        print("Please provide an answer.")
-        getSecAns()
-
-    #security field answer & submit
-    secField = browser.find_element_by_id('HintA')
-    secField.send_keys(secAnswer)
-
-    #submit answer
-    answerSubmit = browser.find_element_by_name('BSubmit')
-    answerSubmit.click()
-
-    
-    #check that we succeeded and got off the secondary auth page to move on
-    pageTitle = str(browser.title)
-    if pageTitle == 'Secondary Authentication Required':
-        print("Security answer incorrect, try again")
-        getSecAns()
-        return
-
 def main():
-
-    #Navigates to readme
-    browser.get('C:\\Program Files\\Time Clocker\\readme.html')
-
-    login(getCreds())
-    getSecAns()
+    #make dataTup a global var
+    dataTup = getCreds()
+    login(dataTup)
+    
+    #wait til the user enters their sec questions and gets to the home page
+    currentUrl = str(browser.current_url)
+    while "https://www.exponenthr.com/service/EmpWelcome.asp" not in currentUrl:
+        time.sleep(1)
+        currentUrl = str(browser.current_url)
 
     #navigate to timeclock page
     browser.get('https://www.exponenthr.com/service/EmpTimeClock.asp');
@@ -107,7 +99,6 @@ def main():
     textList = []
     for option in thisWeekOptions:
         textList.append(option.text)
-
 
     #create a list of matching items between the list of dates clocked, and dates in the dropdown
     matchSet = list(set(dateMatch).intersection(valuesList))
@@ -134,18 +125,19 @@ def main():
             if i in dateIndexes:
                 print("Already Clocked or PTO/Holiday, Skipping!\n")
                 continue
-
-            #jump to 9AM in time dropdown & submit
-            timeDropDown = Select(browser.find_element_by_name('ThePayTimeINOUT'))
-            timeDropDown.select_by_value("9:00 AM")
-            punchButton = browser.find_element_by_name('B1')
-            punchButton.click()
-
-            #jump to 5PM in time dropdown & submit
-            timeDropDown = Select(browser.find_element_by_name('ThePayTimeINOUT'))
-            timeDropDown.select_by_value("5:00 PM")
-            punchButton = browser.find_element_by_name('B1')
-            punchButton.click()
+            
+            #loop through the times in the tuple and clock them
+            for tupID in range(2,6):
+                #skip if blank (for no lunch
+                if dataTup[tupID] == 'NA':
+                    continue
+                else:
+                    #jump to in time dropdown & submit
+                    timeDropDown = Select(browser.find_element_by_name('ThePayTimeINOUT'))
+                    timeDropDown.select_by_value(dataTup[tupID])
+                    punchButton = browser.find_element_by_name('B1')
+                    punchButton.click()
+            
             print("Clocked!\n")
         x = x + 1
 
