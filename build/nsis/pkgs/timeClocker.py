@@ -1,4 +1,4 @@
-#timeClocker 1.2 - Forms, Days, Lunches, Choice of Start Times
+#timeClocker 1.2.1 - Forms, Days, Lunches, Choice of Start Times + bugfix
 
 import re
 from selenium import webdriver
@@ -47,9 +47,13 @@ def getCreds():
     listCount = len(credsList)
     if listCount < 8:
         print("Please fill in all fields!")
-        getCreds()
-        return
+        return getCreds()
 
+    #ensure dayin precedes dayout
+    if credsList[2] > credsList[3]:
+        print("Please select days in the proper order!")
+        return getCreds()
+    
     timeList = []
     #take clocked times out and convert them to date format
     for times in range(4,8):
@@ -61,15 +65,13 @@ def getCreds():
     #ensure pairs are clocked
     if len(timeList) % 2 == 1:
         print("Please ensure you clock properly!")
-        getCreds()
-        return
+        return getCreds()
 
     #ensure that times don't conflict and are actually clockable
     for item in range(0,len(timeList)-1):
         if timeList[item+1] <= timeList[item]:
             print("Times are unclockable! Please ensure your entered times follow each other.")
-            getCreds()
-            return
+            return getCreds()
 
     #make it a tuple containing name, password, dayin, dayout, time in,
     #lunch start, lunch end, time out
@@ -95,15 +97,14 @@ def login(credsTup):
     #check that we got the pw right, if not restart
     pageTitle = str(browser.title)
     if pageTitle == 'Validate Failed':
-        print('Login incorrect, try again')
-        login(getCreds())
-        return
+        print('Login incorrect, try again!')
+        return login(getCreds())
 
 def main():
     #make dataTup a global var
     dataTup = getCreds()
     login(dataTup)
-
+    
     #wait til the user enters their sec questions and gets to the home page
     currentUrl = str(browser.current_url)
     while "https://www.exponenthr.com/service/EmpWelcome.asp" not in currentUrl:

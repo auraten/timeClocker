@@ -45,8 +45,8 @@ Section "!${PRODUCT_NAME}" sec_app
 
       ; Install files
     SetOutPath "$INSTDIR"
-      File "glossyorb.ico"
       File "Time_Clocker.launch.py"
+      File "glossyorb.ico"
       File "chromedriver.exe"
       File "form.html"
   
@@ -148,8 +148,8 @@ Section "Uninstall"
   ; Remove ourselves from %PATH%
 
   ; Uninstall files
-    Delete "$INSTDIR\glossyorb.ico"
     Delete "$INSTDIR\Time_Clocker.launch.py"
+    Delete "$INSTDIR\glossyorb.ico"
     Delete "$INSTDIR\chromedriver.exe"
     Delete "$INSTDIR\form.html"
   ; Uninstall directories
