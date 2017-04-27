@@ -1,4 +1,4 @@
-#timeClocker 1.1 - Forms
+#timeClocker 1.2 - Forms, Days, Lunches, Choice of Start Times
 
 import re
 from selenium import webdriver
@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 import time
 from urllib.parse import urlparse, parse_qs
+import datetime
 
 #points to driver, disables password manager, moves to right side of screen
 chrome_options = Options()
@@ -23,7 +24,8 @@ def getCreds():
     #open the credentials form
     browser.get('C:\\Program Files\\Time Clocker\\form.html')
 
-    #get the current URL and wait until it has a "?" in it, which indicates the user has pressed submit
+    #get the current URL and wait until it has a "?" in it,
+    #which indicates the user has pressed submit
     currentUrl = str(browser.current_url)
     while "?" not in currentUrl:
         time.sleep(1)
@@ -33,14 +35,44 @@ def getCreds():
     parsedUrl = urlparse(currentUrl)
     userDataDict = parse_qs(parsedUrl.query)
 
-    #strip the unnecessary characters from the dict values, make it a list, then a tuple
+    #strip the unnecessary characters from the dict values,
+    #make it a list, then a tuple
     credsList = []
     for value in userDataDict.values():
         regex = re.compile('[^a-zA-Z0-9: ]')
         value = regex.sub('', str(value))
         credsList.append(value)
 
-    #make it a tuple
+    #ensure nothing is blank
+    listCount = len(credsList)
+    if listCount < 8:
+        print("Please fill in all fields!")
+        getCreds()
+        return
+
+    timeList = []
+    #take clocked times out and convert them to date format
+    for times in range(4,8):
+        if "M" not in credsList[times]:
+            continue
+        else:
+            timeList.append(datetime.datetime.strptime(credsList[times],'%I:%M %p'))
+            
+    #ensure pairs are clocked
+    if len(timeList) % 2 == 1:
+        print("Please ensure you clock properly!")
+        getCreds()
+        return
+
+    #ensure that times don't conflict and are actually clockable
+    for item in range(0,len(timeList)-1):
+        if timeList[item+1] <= timeList[item]:
+            print("Times are unclockable! Please ensure your entered times follow each other.")
+            getCreds()
+            return
+
+    #make it a tuple containing name, password, dayin, dayout, time in,
+    #lunch start, lunch end, time out
     dataTup = tuple(credsList)
     return dataTup
 
@@ -71,7 +103,7 @@ def main():
     #make dataTup a global var
     dataTup = getCreds()
     login(dataTup)
-    
+
     #wait til the user enters their sec questions and gets to the home page
     currentUrl = str(browser.current_url)
     while "https://www.exponenthr.com/service/EmpWelcome.asp" not in currentUrl:
@@ -85,7 +117,8 @@ def main():
     holiday = browser.find_element_by_id('TableScript1')
     holiText = holiday.text
 
-    #use regex to search the text string for all clocked dates in the xx/xx/xxxx format
+    #use regex to search the text string for all clocked dates
+    #in the xx/xx/xxxx format
     dateMatch = re.findall(r"(\d+/\d+/\d+)",holiText)
 
     #get a list of values in the date dropdown to compare against
@@ -100,7 +133,8 @@ def main():
     for option in thisWeekOptions:
         textList.append(option.text)
 
-    #create a list of matching items between the list of dates clocked, and dates in the dropdown
+    #create a list of matching items between the list of dates clocked,
+    #and dates in the dropdown
     matchSet = list(set(dateMatch).intersection(valuesList))
 
     #find the all indexes for the matching items and sort
@@ -115,19 +149,20 @@ def main():
 
     while x < weeks:
         y = x * 7
-        for i in range(y+1,y+6):        
+        for i in range(y+int(dataTup[2]),y+int(dataTup[3])+1):        
             #jump to the day we are on and print it out
             dateDropDown = Select(browser.find_element_by_name('ThePayDateINOUTTwo'))
             dateDropDown.select_by_index(i)
             print(textList[i])
 
-            #continue if we have a matching date index, effectively skipping a day
+            #continue if we have a matching date index,
+            #effectively skipping a day
             if i in dateIndexes:
                 print("Already Clocked or PTO/Holiday, Skipping!\n")
                 continue
             
             #loop through the times in the tuple and clock them
-            for tupID in range(2,6):
+            for tupID in range(4,8):
                 #skip if blank (for no lunch
                 if dataTup[tupID] == 'NA':
                     continue
