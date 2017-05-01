@@ -1,4 +1,4 @@
-#timeClocker 1.2.1 - Forms, Days, Lunches, Choice of Start Times + bugfix
+#timeClocker 1.2.2 - Forms, Days, Lunches, Choice of Start Times
 
 import re
 from selenium import webdriver
@@ -39,7 +39,7 @@ def getCreds():
     #make it a list, then a tuple
     credsList = []
     for value in userDataDict.values():
-        regex = re.compile('[^a-zA-Z0-9: ]')
+        regex = re.compile('[\'\[\]]')
         value = regex.sub('', str(value))
         credsList.append(value)
 
