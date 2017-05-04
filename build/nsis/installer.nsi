@@ -1,10 +1,10 @@
 !define PRODUCT_NAME "Time Clocker"
-!define PRODUCT_VERSION "1.2.2"
+!define PRODUCT_VERSION "1.2.3"
 !define PY_VERSION "3.6.1"
 !define PY_MAJOR_VERSION "3.6"
 !define BITNESS "64"
 !define ARCH_TAG ".amd64"
-!define INSTALLER_NAME "Time_Clocker_1.2.2.exe"
+!define INSTALLER_NAME "Time_Clocker_1.2.3.exe"
 !define PRODUCT_ICON "glossyorb.ico"
  
 SetCompressor lzma

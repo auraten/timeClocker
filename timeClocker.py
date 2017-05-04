@@ -1,4 +1,4 @@
-#timeClocker 1.2.2 - Forms, Days, Lunches, Choice of Start Times
+#timeClocker 1.2.3 - Forms, Days, Lunches, Choice of Start Times
 
 import re
 from selenium import webdriver
@@ -33,14 +33,13 @@ def getCreds():
 
     #once the user has clicked submit, parse the URL and grab the get values
     parsedUrl = urlparse(currentUrl)
-    userDataDict = parse_qs(parsedUrl.query)
-
+    userDataDict = parse_qs(parsedUrl.query) 
+    
     #strip the unnecessary characters from the dict values,
-    #make it a list, then a tuple
+    #make it a list
     credsList = []
     for value in userDataDict.values():
-        regex = re.compile('[\'\[\]]')
-        value = regex.sub('', str(value))
+        value = str(value)[2:-2]
         credsList.append(value)
 
     #ensure nothing is blank
@@ -99,13 +98,17 @@ def login(credsTup):
     if pageTitle == 'Validate Failed':
         print('Login incorrect, try again!')
         return login(getCreds())
+    else:
+        print("Login Successful!\n")
 
 def main():
     #make dataTup a global var
     dataTup = getCreds()
     login(dataTup)
     
-    #wait til the user enters their sec questions and gets to the home page
+    #prompt the user to enter their sec answer then
+    #wait til they get to the home page
+    print("Please answer your security question in the browser.\n")
     currentUrl = str(browser.current_url)
     while "https://www.exponenthr.com/service/EmpWelcome.asp" not in currentUrl:
         time.sleep(1)
