@@ -1,4 +1,4 @@
-#timeClocker 2.0.1 - UltiPro Adaptation
+#timeClocker 2.0.2 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
@@ -141,19 +141,6 @@ def main():
     else:
         weeks = 3
 
-    #click the date field
-    dateField = browser.find_element_by_id('gdvTS_rw_' + str(w.days) + '_cl_1')
-    dateField.click()
-
-    #get a list of ALL values in the date dropdown to compare against
-    dateDropDown = Select(browser.find_element_by_id('gdvTS_rw_' + str(w.days) + '_TPDATE_slc'))
-    periodDates = dateDropDown.options
-
-    #convert to text list
-    textList = []
-    for option in periodDates:
-        textList.append(option.text)
-
     #counter for rows
     z = 0
     
@@ -171,12 +158,20 @@ def main():
         dateField = browser.find_element_by_id(rowStr)
         dateText = dateField.text
 
-    #loop to ensure enough rows exist
-    rowCount = w.days - len(clockedDates)
-    for _ in range(rowCount):
-        #click the add button
-        addButton = browser.find_element_by_id('ImgAddRow')
-        addButton.click()
+    #click the date field
+    emptyRow = len(clockedDates) + 1
+
+    dateField = browser.find_element_by_id('gdvTS_rw_' + str(emptyRow) + '_cl_1')
+    dateField.click()
+
+    #get a list of ALL values in the date dropdown to compare against
+    dateDropDown = Select(browser.find_element_by_id('gdvTS_rw_' + str(emptyRow) + '_TPDATE_slc'))
+    periodDates = dateDropDown.options
+
+    #convert to text list
+    textList = []
+    for option in periodDates:
+        textList.append(option.text)
 
     #instantiate list of valid dates
     validDates = []
@@ -192,11 +187,18 @@ def main():
             if textList[i] not in clockedDates:
                 validDates.append(textList[i])
 
+    #loop to ensure enough rows exist
+    rowCount = len(validDates)
+    for _ in range(rowCount):
+        #click the add button
+        addButton = browser.find_element_by_id('ImgAddRow')
+        addButton.click()
+    
     #find the index numbers of those valid dates in the list of ALL dates
     indexList = []
     for i in validDates:
         indexList.append(textList.index(i))
-        
+
     #clock based on only the valid dates
     #z counter is already iterated properly to avoid row collisions
     for i in indexList:   
