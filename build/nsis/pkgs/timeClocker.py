@@ -1,4 +1,4 @@
-#timeClocker 2.0 - Forms, Days, Lunches, Choice of Start Times
+#timeClocker 2.0.1 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
@@ -93,15 +93,17 @@ def login(credsTup):
     #check that we got the pw right, if not restart
     currentUrl = str(browser.current_url)
     if currentUrl == 'https://nw12.ultipro.com/login.aspx':
-        print('Login incorrect, try again!')
-        return login(getCreds())
-    else:
-        print("Login Successful!\n")
+        print('Please try your credentials again in the browser, or fill in your security questions.')
+    while currentUrl == 'https://nw12.ultipro.com/login.aspx':
+        time.sleep(1)
+        currentUrl = str(browser.current_url)
     
 def main():
     #make dataTup a global var
     dataTup = getCreds()
     login(dataTup)
+
+    print('Login Successful!\n')
     
     #navigate to timeclock page
     menuButton = browser.find_element_by_xpath('//*[@id=\"menuButtonContainer\"]/div[1]')
@@ -139,12 +141,6 @@ def main():
     else:
         weeks = 3
 
-    #loop to ensure enough rows exist
-    for _ in range(w.days):
-        #click the add button
-        addButton = browser.find_element_by_id('ImgAddRow')
-        addButton.click()
-
     #click the date field
     dateField = browser.find_element_by_id('gdvTS_rw_' + str(w.days) + '_cl_1')
     dateField.click()
@@ -174,6 +170,13 @@ def main():
         rowStr = 'gdvTS_rw_' + str(z) + '_cl_1'
         dateField = browser.find_element_by_id(rowStr)
         dateText = dateField.text
+
+    #loop to ensure enough rows exist
+    rowCount = w.days - len(clockedDates)
+    for _ in range(rowCount):
+        #click the add button
+        addButton = browser.find_element_by_id('ImgAddRow')
+        addButton.click()
 
     #instantiate list of valid dates
     validDates = []
