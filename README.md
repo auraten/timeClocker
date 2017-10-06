@@ -1,2 +1,2 @@
 # timeClocker
-Clocks time in ExponentHR via Selenium - Read the Wiki for more info!
+Clocks time in UltiPro via Selenium - Read the Wiki for more info!
