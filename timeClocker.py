@@ -1,4 +1,4 @@
-#timeClocker 2.0.2 - UltiPro Adaptation
+#timeClocker 2.0.3 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
@@ -17,7 +17,7 @@ chrome_options.add_experimental_option('prefs', {
     }
 })
 chrome_options.add_argument("window-position=1000,0")
-chrome_options.add_argument("window-size=900,1800")
+chrome_options.add_argument("window-size=900,900")
 browser = webdriver.Chrome('C:\Program Files\Time Clocker\chromedriver.exe',chrome_options=chrome_options)
 
 def getCreds():
@@ -123,6 +123,14 @@ def main():
     frame = browser.find_element_by_id('main_frame')
     browser.switch_to.frame(frame)
 
+    #check that we are in the current pay period
+    #if not, instruct to stop and submit previous sheet
+    payPeriodDD = Select(browser.find_element_by_id('COMBO1_PAYCYCLE_dlDateSelection'))
+    if payPeriodDD.first_selected_option.text != 'Current Pay Period':
+        print('Please submit your last pay period in UltiPro, then re-run this program.\nThis window will close in 15 seconds.')
+        time.sleep(15)
+        quit()
+    
     #grab the string that specifies the date range
     dateString = browser.find_element_by_class_name('timesheetHeaderText')
     dateText = dateString.text
@@ -162,6 +170,7 @@ def main():
     emptyRow = len(clockedDates) + 1
 
     dateField = browser.find_element_by_id('gdvTS_rw_' + str(emptyRow) + '_cl_1')
+    browser.execute_script("return arguments[0].scrollIntoView();", dateField)
     dateField.click()
 
     #get a list of ALL values in the date dropdown to compare against
@@ -192,12 +201,21 @@ def main():
     for _ in range(rowCount):
         #click the add button
         addButton = browser.find_element_by_id('ImgAddRow')
+        browser.execute_script("return arguments[0].scrollIntoView();", addButton)
         addButton.click()
     
     #find the index numbers of those valid dates in the list of ALL dates
     indexList = []
     for i in validDates:
         indexList.append(textList.index(i))
+
+##    #find index #s of clocked dates and print out that they are already clocked
+##    clockedIndexList = []
+##    for i in clockedDates:
+##        clockedIndexList.append(textList.index(i))
+##
+##    for i in clockedIndexList:
+##        print(str(textList[clockedIndexList[i]]) + ' has already been clocked!\n')
 
     #clock based on only the valid dates
     #z counter is already iterated properly to avoid row collisions
@@ -210,6 +228,7 @@ def main():
         dateField = browser.find_element_by_id(rowStr)
         
         #click the date field
+        browser.execute_script("return arguments[0].scrollIntoView();", dateField)
         dateField.click()
 
         #insert the counter into the string to iterate dates in the drop down
@@ -247,6 +266,7 @@ def main():
 
             #click the add button
             addButton = browser.find_element_by_id('ImgAddRow')
+            browser.execute_script("return arguments[0].scrollIntoView();", addButton)
             addButton.click()
 
             #insert the row counter into the string to interate rows
@@ -254,6 +274,7 @@ def main():
             
             #click the date field
             dateField = browser.find_element_by_id(rowStr)
+            browser.execute_script("return arguments[0].scrollIntoView();", dateField)
             dateField.click()
 
             #insert the counter into the string to iterate dates in the drop down
@@ -291,6 +312,7 @@ def main():
         z = z + 1
 
     submitButton = browser.find_element_by_id('btn_Apply')
+    browser.execute_script("return arguments[0].scrollIntoView();", submitButton)
     submitButton.click()
 
-    print("DONE! You may now close this window.")
+    print("DONE! Your requested times have been clocked and saved.\nPlease review them for accuracy, then close this window.")
