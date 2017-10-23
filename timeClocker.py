@@ -1,4 +1,4 @@
-#timeClocker 2.0.3 - UltiPro Adaptation
+#timeClocker 2.0.4 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
@@ -106,11 +106,20 @@ def main():
     print('Login Successful!\n')
     
     #navigate to timeclock page
-    menuButton = browser.find_element_by_xpath('//*[@id=\"menuButtonContainer\"]/div[1]')
+    menuButton = browser.find_element_by_name('menuButton')
     menuButton.click()
-    myselfButton = browser.find_element_by_xpath('//*[@id=\"megaMenuHeader\"]/div[2]/div[2]')
+    #this method of navigation replaces the unreliable xpath method I was using
+    #and replaces it with more permanent data fields
+    #we get a list of all clases, then find the one with the correct data field
+    myselfButton = browser.find_elements_by_class_name('menuTopHeader')
+    for i in myselfButton:
+        if i.get_attribute('data-uitoggle') == 'menu_myself':
+            myselfButton = i
     myselfButton.click()
-    timeMGMT = browser.find_element_by_xpath('//*[@id=\"newMegaMenuContainer\"]/div[2]/div[3]/div[3]/div[1]/h3')
+    timeMGMT = browser.find_elements_by_class_name('menuItem')
+    for i in timeMGMT:
+        if i.get_attribute('data-id') == '2148':
+            timeMGMT = i
     timeMGMT.click()
 
     #drop down into the proper frame
@@ -128,6 +137,14 @@ def main():
     payPeriodDD = Select(browser.find_element_by_id('COMBO1_PAYCYCLE_dlDateSelection'))
     if payPeriodDD.first_selected_option.text != 'Current Pay Period':
         print('Please submit your last pay period in UltiPro, then re-run this program.\nThis window will close in 15 seconds.')
+        time.sleep(15)
+        quit()
+
+    #check that the status of current period is open
+    #if not, instruct to stop and troubleshoot
+    payPeriodStatus = browser.find_element_by_id('tsStatus')
+    if payPeriodStatus.text != 'OPEN':
+        print('Please ensure the current pay period is in the open status, then re-run this program.\nThis window will close in 15 seconds.')
         time.sleep(15)
         quit()
     
