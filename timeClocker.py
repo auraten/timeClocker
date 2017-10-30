@@ -1,4 +1,4 @@
-#timeClocker 2.0.4 - UltiPro Adaptation
+#timeClocker 2.0.5 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
