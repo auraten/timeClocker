@@ -204,12 +204,20 @@ def main():
 
     #counter for weeks
     x = 0
+
+    #find the first Sunday and set it as an anchor int
+    anchor = 0
+    for i in textList:
+        if i[:3] == 'Sun':
+            anchor = textList.index(i)
+            break
     
-    #run through the users chosen dates to compare clocked dates against the list of all dates to create a list of valid dates
+    #run through the users chosen dates to compare clocked dates against
+    #the list of all dates to create a list of valid dates to clock
     while x < weeks:
         y = x * 7
         x = x + 1
-        for i in range(y+int(dataTup[2])+1,y+int(dataTup[3])+2):
+        for i in range(y+anchor+int(dataTup[2]),y+anchor+int(dataTup[3])+1):
             if textList[i] not in clockedDates:
                 validDates.append(textList[i])
 
