@@ -1,4 +1,4 @@
-#timeClocker 2.0.5 - UltiPro Adaptation
+#timeClocker 2.0.6 - UltiPro Adaptation
 
 import re
 from selenium import webdriver
@@ -199,18 +199,18 @@ def main():
     for option in periodDates:
         textList.append(option.text)
 
-    #instantiate list of valid dates
-    validDates = []
-
-    #counter for weeks
-    x = 0
-
     #find the first Sunday and set it as an anchor int
     anchor = 0
     for i in textList:
         if i[:3] == 'Sun':
             anchor = textList.index(i)
             break
+
+    #counter for weeks
+    x = 0
+
+    #instantiate list of valid dates
+    validDates = []
     
     #run through the users chosen dates to compare clocked dates against
     #the list of all dates to create a list of valid dates to clock
@@ -220,6 +220,35 @@ def main():
         for i in range(y+anchor+int(dataTup[2]),y+anchor+int(dataTup[3])+1):
             if textList[i] not in clockedDates:
                 validDates.append(textList[i])
+
+    #list of holidays to ensure we don't clock them
+    holidayList = ['Thu 11/23/2017',
+                   'Fri 11/24/2017',
+                   'Mon 12/25/2017',
+                   'Tue 12/26/2017',
+                   'Mon 01/01/2018',
+                   'Mon 02/19/2018',
+                   'Fri 03/30/2018',
+                   'Mon 05/28/2018',
+                   'Wed 07/04/2018',
+                   'Thu 07/05/2018',
+                   'Mon 09/03/2018',
+                   'Thu 11/22/2018',
+                   'Fri 11/23/2018',
+                   'Mon 12/24/2018',
+                   'Tue 12/25/2018']
+
+    #interstitial list to circumvent the list loop remove issue:
+    #https://stackoverflow.com/questions/18194968/python-remove-duplicates-from-2-lists
+    holidayScrubbedList = []
+
+    #loop to add non-holidays to holidayScrubbedList
+    for date in validDates:
+        if date not in holidayList:
+            holidayScrubbedList.append(date)
+
+    #overwrite validDates with holidayScrubbedList
+    validDates = holidayScrubbedList
 
     #loop to ensure enough rows exist
     rowCount = len(validDates)
